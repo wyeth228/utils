@@ -10,7 +10,31 @@ define(["utils/extra"], function (utilsExtra) {
 
   var callbackStore = {};
 
-  function addVersion(src) {
+  function deletePreviousVersionsFromLocalStorage(src, versionedSrc) {
+    for (var i = 0; i < localStorage.length; ++i) {
+      (function (index) {
+        var keyFromLocalStorage = localStorage.key(index);
+
+        if (keyFromLocalStorage === versionedSrc) {
+          return;
+        }
+
+        if (keyFromLocalStorage.indexOf(src) === -1) {
+          return;
+        }
+
+        /**
+         * setTimeout is used for because removing items from localStorage will change its length that this cycle depends of.
+         * removing from localStorage will be happpend after the iteration is accomplished
+         */
+        setTimeout(function () {
+          localStorage.removeItem(keyFromLocalStorage);
+        });
+      })(i);
+    }
+  }
+
+  function addVersionTo(src) {
     if (window.APP_VERSION) {
       var args = "v=" + window.APP_VERSION;
 
@@ -24,7 +48,7 @@ define(["utils/extra"], function (utilsExtra) {
 
   return {
     loadFile: function (src, callback) {
-      src = addVersion(src);
+      src = addVersionTo(src);
 
       /**
        * if we have already downloaded such file we will pass the file
@@ -69,26 +93,32 @@ define(["utils/extra"], function (utilsExtra) {
 
         var callbackSendData = utilsExtra.copy(xhr.responseText);
 
-        if (src in callbackStore) {
-          if (callbackStore[src].type === config.CALLBACK_TYPES.LOAD_FILE) {
-            for (var i = 0; i < callbackStore[src].callbacks.length; ++i) {
-              var cb = callbackStore[src].callbacks[i];
-
-              cb(callbackSendData);
-            }
-
-            delete callbackStore[src];
-          }
+        if (!(src in callbackStore)) {
+          return;
         }
+
+        if (callbackStore[src].type !== config.CALLBACK_TYPES.LOAD_FILE) {
+          return;
+        }
+
+        for (var i = 0; i < callbackStore[src].callbacks.length; ++i) {
+          var cb = callbackStore[src].callbacks[i];
+
+          cb(callbackSendData);
+        }
+
+        delete callbackStore[src];
       };
 
       xhr.send(null);
     },
 
     loadJSON: function (src, callback) {
-      src = addVersion(src);
+      var versionedSrc = addVersionTo(src);
 
-      var stored = localStorage.getItem(src);
+      deletePreviousVersionsFromLocalStorage(src, versionedSrc);
+
+      var stored = localStorage.getItem(versionedSrc);
 
       if (stored) {
         callback(JSON.parse(stored));
@@ -98,9 +128,9 @@ define(["utils/extra"], function (utilsExtra) {
 
       var xhr = new XMLHttpRequest();
       xhr.overrideMimeType("application/json");
-      xhr.open("GET", src, true);
+      xhr.open("GET", versionedSrc, true);
       xhr.onload = function () {
-        localStorage.setItem(src, xhr.responseText);
+        localStorage.setItem(versionedSrc, xhr.responseText);
 
         callback(JSON.parse(xhr.responseText));
       };
@@ -109,7 +139,7 @@ define(["utils/extra"], function (utilsExtra) {
     },
 
     loadImage: function (src, callback) {
-      src = addVersion(src);
+      src = addVersionTo(src);
 
       /**
        * if we have already downloaded such file we will pass the file
@@ -151,17 +181,21 @@ define(["utils/extra"], function (utilsExtra) {
       image.onload = function () {
         fileStore[src] = src;
 
-        if (src in callbackStore) {
-          if (callbackStore[src].type === config.CALLBACK_TYPES.LOAD_IMAGE) {
-            for (var i = 0; i < callbackStore[src].callbacks.length; ++i) {
-              var cb = callbackStore[src].callbacks[i];
-
-              cb(src);
-            }
-
-            delete callbackStore[src];
-          }
+        if (!(src in callbackStore)) {
+          return;
         }
+
+        if (callbackStore[src].type !== config.CALLBACK_TYPES.LOAD_IMAGE) {
+          return;
+        }
+
+        for (var i = 0; i < callbackStore[src].callbacks.length; ++i) {
+          var cb = callbackStore[src].callbacks[i];
+
+          cb(src);
+        }
+
+        delete callbackStore[src];
       };
     },
 
