@@ -41,6 +41,19 @@ define(function () {
   }
 
   /**
+   * converts degrees to radians
+   * @param {number} deg
+   * @returns {number}
+   */
+  function degToRad(deg) {
+    if (typeof deg !== "number") {
+      return 0;
+    }
+
+    return (deg * Math.PI) / 180;
+  }
+
+  /**
    * converts radians to coordinates
    * @param {number} rad
    * @returns {Coordinates}
