@@ -202,8 +202,8 @@ define(["utils/extra"], function (utilsExtra) {
     doRequest: function (
       url,
       settings,
-      successCallback,
       errorCallback,
+      successCallback,
       language
     ) {
       if (!settings) {

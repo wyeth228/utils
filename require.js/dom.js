@@ -1,7 +1,6 @@
 define(function () {
   return {
     /**
-     * creates div element
      * @param {Array<string>} classNames
      * @param {string} text
      * @returns {HTMLImageElement}
@@ -23,7 +22,7 @@ define(function () {
     },
 
     /**
-     * creates p element
+     * creates <p> element
      * @param {Array<string>} classNames
      * @param {string} text
      * @returns {HTMLImageElement}

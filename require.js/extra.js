@@ -1,5 +1,10 @@
 define(function () {
   return {
+    /**
+     * get object copy
+     * @param {object} object
+     * @returns object
+     */
     copy: function (object) {
       return JSON.parse(JSON.stringify(object));
     },
